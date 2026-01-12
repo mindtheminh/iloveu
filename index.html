@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi em 💌</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&family=Merienda:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script>
+        // Đảm bảo confetti được load
+        window.confetti = window.confetti || function() {
+            console.log('Confetti đang được load...');
+        };
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Merienda', cursive;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #fffefe 0%, #fff5f8 50%, #ffeef5 100%);
+            min-height: 100vh;
+            color: #5a4a52;
+        }
+
+        /* ========== MÀN HÌNH KHÓA BÍ MẬT ========== */
+        #lock-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #fffefe 0%, #fff5f8 50%, #ffeef5 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 1.5s ease, visibility 1.5s ease;
+        }
+
+        #lock-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .wait-message, .password-form {
+            text-align: center;
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .wait-title, .password-title {
+            font-size: 32px;
+            font-family: 'Dancing Script', cursive;
+            color: #cc3366;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .wait-subtitle {
+            font-size: 18px;
+            font-family: 'Merienda', cursive;
+            color: #8b5a7a;
+            margin-bottom: 30px;
+        }
+
+        .password-hint {
+            font-size: 16px;
+            font-family: 'Merienda', cursive;
+            color: #8b5a7a;
+            margin-bottom: 25px;
+        }
+
+        .password-input-wrapper {
+            position: relative;
+            width: 280px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #ffb6cf;
+            border-radius: 50px;
+            font-size: 18px;
+            font-family: 'Merienda', cursive;
+            color: #5a4a52;
+            background: rgba(255, 255, 255, 0.9);
+            outline: none;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: #8b5a7a;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            opacity: 1;
+        }
+
+        .password-toggle:focus {
+            outline: none;
+        }
+
+        .password-input:focus {
+            border-color: #ff9fbe;
+            box-shadow: 0 0 15px rgba(255, 182, 207, 0.4);
+            background: white;
+        }
+
+        .password-submit {
+            padding: 12px 35px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #ffb6cf 0%, #ff9fbe 100%);
+            color: white;
+            font-size: 18px;
+            font-family: 'Dancing Script', cursive;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 182, 207, 0.4);
+        }
+
+        .password-submit:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 182, 207, 0.5);
+        }
+
+        .error-message {
+            margin-top: 15px;
+            font-size: 16px;
+            font-family: 'Merienda', cursive;
+            color: #ff7ba3;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .error-message.visible {
+            opacity: 1;
+        }
+
+        /* Signature link */
+        .signature-link {
+            margin-top: 25px;
+            font-size: 0.9rem;
+        }
+
+        .signature-link a {
+            color: #cc3366;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+            font-family: 'Merienda', cursive;
+        }
+
+        .signature-link a:hover {
+            opacity: 1;
+            text-decoration: underline;
+            transform: scale(1.05);
+            display: inline-block;
+        }
+
+        /* ========== MÀN HÌNH PHONG BÌ ========== */
+        #opening-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #fffefe 0%, #fff5f8 50%, #ffeef5 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 2s ease, visibility 2s ease;
+            overflow: hidden;
+        }
+
+        #opening-screen.visible {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scene {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Phong bì thư */
+        .envelope {
+            position: relative;
+            width: 320px;
+            height: 200px;
+            cursor: pointer;
+            z-index: 100;
+            animation: floatEnvelope 3s ease-in-out infinite;
+        }
+
+        @keyframes floatEnvelope {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .envelope.opened {
+            animation: none;
+        }
+
+        .envelope-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #ffc1d6;
+            border-radius: 8px;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(255, 182, 193, 0.25);
+        }
+
+        .envelope-front {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #ffb6cf;
+            clip-path: polygon(0 0, 50% 55%, 100% 0, 100% 100%, 0 100%);
+            border-radius: 8px;
+            z-index: 3;
+        }
+
+        .envelope-top {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #ff9fbe;
+            clip-path: polygon(0 0, 50% 55%, 100% 0);
+            transform-origin: top center;
+            transition: transform 0.8s ease;
+            z-index: 4;
+        }
+
+        .envelope.open .envelope-top {
+            transform: rotateX(180deg);
+        }
+
+        .letter-initial {
+            position: absolute;
+            width: 90%;
+            height: 160px;
+            background: #fff;
+            top: 15px;
+            left: 5%;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-family: 'Dancing Script', cursive;
+            color: #ff7ba3;
+            font-weight: 700;
+            transform: translateY(45px);
+            transition: transform 1s ease 0.3s;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(255, 182, 193, 0.2);
+        }
+
+        .envelope.open .letter-initial {
+            transform: translateY(-80px);
+        }
+
+        .instruction-text {
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            font-family: 'Merienda', cursive;
+            color: #8b5a7a;
+            text-align: center;
+            opacity: 1;
+            z-index: 50;
+        }
+
+        /* ========== NẾN ========== */
+        .candle {
+            position: absolute;
+            width: 30px;
+            height: 80px;
+        }
+
+        .candle-body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #fff8f0 0%, #ffe8d6 100%);
+            border-radius: 15px 15px 5px 5px;
+            position: relative;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Ngọn lửa nến */
+        .candle-flame {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 20px;
+            background: radial-gradient(circle, #fff9c4 0%, #ffd54f 50%, #ffb74d 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 
+                0 0 10px rgba(255, 215, 0, 0.8),
+                0 0 20px rgba(255, 183, 77, 0.6),
+                0 0 30px rgba(255, 183, 77, 0.4);
+            transition: all 0.15s ease-in-out;
+            animation: flicker 2s ease-in-out infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% {
+                transform: translateX(-50%) scale(1) rotate(-1deg);
+                opacity: 0.85;
+            }
+            25% {
+                transform: translateX(-50%) scale(1.05) rotate(1deg);
+                opacity: 0.9;
+            }
+            50% {
+                transform: translateX(-50%) scale(0.95) rotate(-0.5deg);
+                opacity: 0.8;
+            }
+            75% {
+                transform: translateX(-50%) scale(1.02) rotate(0.5deg);
+                opacity: 0.88;
+            }
+        }
+
+        .candle-flame.climax {
+            transform: translateX(-50%) scale(1.2);
+            opacity: 1;
+            animation-duration: 1s;
+        }
+
+        /* Vị trí các nến */
+        .candle.candle-1 {
+            top: 15%;
+            left: 10%;
+            transform: rotate(-10deg);
+        }
+
+        .candle.candle-2 {
+            top: 20%;
+            right: 12%;
+            transform: rotate(15deg);
+        }
+
+        .candle.candle-3 {
+            bottom: 25%;
+            left: 12%;
+            transform: rotate(-15deg);
+        }
+
+        .candle.candle-4 {
+            bottom: 20%;
+            right: 10%;
+            transform: rotate(10deg);
+        }
+
+        /* Ánh sáng nến */
+        .candle-light {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 50%;
+            animation: lightFlicker 1s infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes lightFlicker {
+            0% {
+                opacity: 0.5;
+                transform: translateX(-50%) scale(1);
+            }
+            100% {
+                opacity: 0.8;
+                transform: translateX(-50%) scale(1.2);
+            }
+        }
+
+        /* ========== HOA ========== */
+        .rose {
+            position: absolute;
+            font-size: 40px;
+            opacity: 0.7;
+            animation: floatRose 4s ease-in-out infinite;
+            filter: drop-shadow(0 2px 8px rgba(255, 192, 203, 0.4));
+        }
+
+        @keyframes floatRose {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-10px) rotate(5deg);
+            }
+        }
+
+        .rose.rose-1 {
+            top: 10%;
+            left: 8%;
+            animation-delay: 0s;
+        }
+
+        .rose.rose-2 {
+            top: 15%;
+            right: 10%;
+            animation-delay: 1s;
+        }
+
+        .rose.rose-3 {
+            bottom: 20%;
+            left: 10%;
+            animation-delay: 1.5s;
+        }
+
+        .rose.rose-4 {
+            bottom: 15%;
+            right: 8%;
+            animation-delay: 0.5s;
+        }
+
+        /* ========== MÂY HỒNG ========== */
+        .clouds {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130%;
+            height: 150px;
+            background: 
+                radial-gradient(circle at 10% 60%, rgba(255, 192, 214, 0.5) 35%, transparent 36%),
+                radial-gradient(circle at 30% 50%, rgba(255, 182, 207, 0.6) 40%, transparent 41%),
+                radial-gradient(circle at 50% 55%, rgba(255, 192, 214, 0.5) 38%, transparent 39%),
+                radial-gradient(circle at 70% 50%, rgba(255, 182, 207, 0.6) 40%, transparent 41%),
+                radial-gradient(circle at 90% 60%, rgba(255, 192, 214, 0.5) 35%, transparent 36%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        #main-content .clouds {
+            position: fixed;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130%;
+            height: 150px;
+            background: 
+                radial-gradient(circle at 10% 60%, rgba(255, 192, 214, 0.5) 35%, transparent 36%),
+                radial-gradient(circle at 30% 50%, rgba(255, 182, 207, 0.6) 40%, transparent 41%),
+                radial-gradient(circle at 50% 55%, rgba(255, 192, 214, 0.5) 38%, transparent 39%),
+                radial-gradient(circle at 70% 50%, rgba(255, 182, 207, 0.6) 40%, transparent 41%),
+                radial-gradient(circle at 90% 60%, rgba(255, 192, 214, 0.5) 35%, transparent 36%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ========== MÀN HÌNH CHÍNH (NỘI DUNG THƯ) ========== */
+        #main-content {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fffefe 0%, #fff5f8 50%, #ffeef5 100%);
+            padding: 40px 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 2s ease, visibility 2s ease;
+            position: relative;
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            z-index: 999;
+        }
+
+        #main-content.visible {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .letter-full {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 10px 40px rgba(255, 182, 193, 0.2);
+            position: relative;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s ease, transform 1s ease;
+            margin-bottom: 30px;
+            display: block;
+            /* Texture giấy */
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(250, 248, 245, 0.3) 2px,
+                    rgba(250, 248, 245, 0.3) 4px
+                ),
+                linear-gradient(to bottom, rgba(255, 254, 254, 0.95) 0%, rgba(255, 250, 248, 0.95) 100%);
+        }
+
+        .letter-full.visible {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+
+        .letter-date {
+            text-align: right;
+            color: #8b5a7a;
+            font-size: 14px;
+            font-family: 'Merienda', cursive;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .letter-title {
+            font-size: 32px;
+            font-family: 'Dancing Script', cursive;
+            color: #cc3366;
+            margin-bottom: 35px;
+            text-align: center;
+            font-weight: 700;
+            border-bottom: 2px solid #ffd6e0;
+            padding-bottom: 15px;
+        }
+
+        .letter-content {
+            line-height: 1.8;
+            font-size: 17px;
+            font-family: 'Merienda', cursive;
+            color: #444;
+            text-align: justify;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .letter-line {
+            margin-bottom: 20px;
+            opacity: 0;
+            min-height: 35px;
+        }
+
+        .letter-line.visible {
+            opacity: 1;
+        }
+
+        .question-section {
+            text-align: center;
+            margin-top: 40px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .question-section.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .question-text {
+            font-size: 36px;
+            font-family: 'Dancing Script', cursive;
+            color: #cc3366;
+            font-weight: 700;
+            margin-bottom: 40px;
+            animation: pulse 2s ease-in-out infinite;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.03);
+            }
+        }
+
+        .buttons-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .choice-button {
+            padding: 15px 35px;
+            font-size: 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Dancing Script', cursive;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .yes-button {
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            color: white;
+        }
+
+        .yes-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.5);
+        }
+
+        .maybe-button {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            position: relative;
+        }
+
+        .maybe-button:hover {
+            animation: wiggle 0.5s ease infinite;
+        }
+
+        @keyframes wiggle {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(-5deg) translateX(-5px);
+            }
+            75% {
+                transform: rotate(5deg) translateX(5px);
+            }
+        }
+
+        /* Signature trong thư */
+        .letter-signature {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 182, 207, 0.3);
+            text-align: center;
+        }
+
+        .letter-signature a {
+            color: #cc3366;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            font-style: italic;
+            font-family: 'Merienda', cursive;
+            transition: all 0.3s ease;
+            opacity: 0.9;
+        }
+
+        .letter-signature a:hover {
+            opacity: 1;
+            text-decoration: underline;
+            transform: scale(1.05);
+            display: inline-block;
+        }
+
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .success-message.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-text {
+            font-size: 42px;
+            font-family: 'Dancing Script', cursive;
+            font-weight: 700;
+            color: #cc3366;
+            margin-bottom: 20px;
+        }
+
+        .success-subtext {
+            color: #666;
+            font-size: 18px;
+            font-family: 'Merienda', cursive;
+        }
+
+        .maybe-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .music-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1500;
+            opacity: 0;
+            transition: opacity 1s ease, transform 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .music-toggle.visible {
+            opacity: 1;
+        }
+
+        .music-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* YouTube iframe ẩn */
+        #youtube-player {
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .envelope {
+                width: 260px;
+                height: 165px;
+            }
+
+            .letter-initial {
+                height: 135px;
+                font-size: 24px;
+                top: 12px;
+            }
+
+            .envelope.open .letter-initial {
+                transform: translateY(-70px);
+            }
+
+            .letter-full {
+                padding: 35px 25px;
+            }
+
+            .letter-title {
+                font-size: 28px;
+            }
+
+            .letter-content {
+                font-size: 17px;
+            }
+
+            .question-text {
+                font-size: 28px;
+            }
+
+            .choice-button {
+                padding: 12px 25px;
+                font-size: 18px;
+            }
+
+            .buttons-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .candle {
+                width: 25px;
+                height: 65px;
+            }
+
+            .rose {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== MÀN HÌNH KHÓA BÍ MẬT ========== -->
+    <div id="lock-screen">
+        <div id="waitMessage" class="wait-message" style="display: none;">
+            <div class="wait-title">💌 Bức thư bí mật 💌</div>
+            <div class="wait-subtitle">Bức thư này sẽ chỉ được mở vào ngày 17/01/2026</div>
+            <div style="font-size: 40px; margin-top: 20px;">💕</div>
+        </div>
+
+        <div id="passwordForm" class="password-form">
+            <div class="password-title">💗 Nhập mật khẩu để mở bức thư…</div>
+            <div class="password-hint">Đây là một bí mật chỉ dành cho em 💌</div>
+            <div class="password-input-wrapper">
+                <input 
+                    type="password" 
+                    id="passwordInput" 
+                    class="password-input" 
+                    placeholder="Nhập mật khẩu..."
+                    autocomplete="off"
+                    onkeypress="if(event.key === 'Enter') checkPassword()"
+                >
+                <button type="button" class="password-toggle" id="passwordToggle" onclick="togglePasswordVisibility()">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+            </div>
+            <button class="password-submit" onclick="checkPassword()">Mở thư 💌</button>
+            <div id="errorMessage" class="error-message">Sai rồi nè, thử lại nhé 💕</div>
+            <div class="signature-link">
+                <a href="https://www.facebook.com/congminhnguyenn" target="_blank" rel="noopener noreferrer">from Cong Minh Nguyen</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MÀN HÌNH PHONG BÌ ========== -->
+    <div id="opening-screen">
+        <div class="scene">
+            <!-- Hoa xung quanh -->
+            <div class="rose rose-1">🌹</div>
+            <div class="rose rose-2">🌹</div>
+            <div class="rose rose-3">🌹</div>
+            <div class="rose rose-4">🌹</div>
+
+            <!-- Nến -->
+            <div class="candle candle-1">
+                <div class="candle-body">
+                    <div class="candle-light"></div>
+                    <div class="candle-flame"></div>
+                </div>
+            </div>
+            <div class="candle candle-2">
+                <div class="candle-body">
+                    <div class="candle-light"></div>
+                    <div class="candle-flame"></div>
+                </div>
+            </div>
+            <div class="candle candle-3">
+                <div class="candle-body">
+                    <div class="candle-light"></div>
+                    <div class="candle-flame"></div>
+                </div>
+            </div>
+            <div class="candle candle-4">
+                <div class="candle-body">
+                    <div class="candle-light"></div>
+                    <div class="candle-flame"></div>
+                </div>
+            </div>
+
+            <!-- Phong bì thư ở giữa -->
+            <div class="envelope" id="envelope" onclick="openEnvelope()">
+                <div class="letter-initial">💗 Gửi em.... 💗</div>
+                <div class="envelope-back"></div>
+                <div class="envelope-front"></div>
+                <div class="envelope-top"></div>
+            </div>
+
+            <!-- Text hướng dẫn -->
+            <div class="instruction-text">Nhấn vào bức thư 💌</div>
+
+            <!-- Mây hồng -->
+            <div class="clouds"></div>
+        </div>
+    </div>
+
+    <!-- ========== MÀN HÌNH CHÍNH (NỘI DUNG THƯ) ========== -->
+    <div id="main-content">
+        <!-- Mây hồng -->
+        <div class="clouds"></div>
+
+        <!-- Nến và hoa trên màn hình chính -->
+        <div class="candle candle-1">
+            <div class="candle-body">
+                <div class="candle-light"></div>
+                <div class="candle-flame"></div>
+            </div>
+        </div>
+        <div class="candle candle-2">
+            <div class="candle-body">
+                <div class="candle-light"></div>
+                <div class="candle-flame"></div>
+            </div>
+        </div>
+        <div class="candle candle-3">
+            <div class="candle-body">
+                <div class="candle-light"></div>
+                <div class="candle-flame"></div>
+            </div>
+        </div>
+        <div class="candle candle-4">
+            <div class="candle-body">
+                <div class="candle-light"></div>
+                <div class="candle-flame"></div>
+            </div>
+        </div>
+
+        <div class="rose rose-1">🌹</div>
+        <div class="rose rose-2">🌹</div>
+        <div class="rose rose-3">🌹</div>
+        <div class="rose rose-4">🌹</div>
+
+        <!-- YouTube iframe ẩn -->
+        <iframe 
+            id="youtube-player" 
+            width="560" 
+            height="315"
+            src=""
+            title="Nhạc piano nhẹ"
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+        </iframe>
+
+        <!-- Audio Player (Hidden) -->
+        <audio id="background-audio" loop>
+            <source src="sound/sound.m4a" type="audio/mp4">
+            <source src="sound/sound.m4a" type="audio/mpeg">
+        </audio>
+
+        <!-- Nút bật/tắt nhạc -->
+        <button class="music-toggle" id="musicToggle" onclick="toggleMusic()">🔊</button>
+
+        <!-- Container thư đầy đủ -->
+        <div class="letter-full" id="letterFull">
+            <div class="letter-date">10/01/2026</div>
+            <h1 class="letter-title">Gửi em – 10/01/2026</h1>
+            
+            <div class="letter-content" id="letterContent">
+                <!-- Nội dung thư sẽ được thêm bằng JavaScript -->
+            </div>
+
+            <!-- Phần hỏi -->
+            <div class="question-section" id="questionSection">
+                <div class="question-text">Em làm người yêu anh nhé?</div>
+                <div class="buttons-container">
+                    <button class="choice-button yes-button" onclick="handleYes()">Em đồng ý 💖</button>
+                    <button class="choice-button maybe-button" id="maybeButton" onclick="handleMaybe()">Cho em thêm thời gian 😊</button>
+                </div>
+            </div>
+
+            <!-- Signature -->
+            <div class="letter-signature">
+                <a href="https://www.facebook.com/congminhnguyenn" target="_blank" rel="noopener noreferrer">from Cong Minh Nguyen</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông báo hạnh phúc -->
+    <div class="success-message" id="successMessage">
+        <div class="success-text">Yêu em nhiều lắm! 💕</div>
+        <p class="success-subtext">Cảm ơn em đã đến bên anh 💖</p>
+    </div>
+
+    <script>
+        // ========== KHÓA BÍ MẬT ==========
+        const SECRET_PASSWORD = '10012026';
+        const TARGET_DATE = new Date('2026-01-17T00:00:00');
+        
+        function checkDateAndInit() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const targetDate = new Date(TARGET_DATE);
+            targetDate.setHours(0, 0, 0, 0);
+            
+            const waitMessage = document.getElementById('waitMessage');
+            const passwordForm = document.getElementById('passwordForm');
+            
+            if (today < targetDate) {
+                waitMessage.style.display = 'block';
+                passwordForm.style.display = 'none';
+            } else {
+                waitMessage.style.display = 'none';
+                passwordForm.style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('passwordInput').focus();
+                }, 100);
+            }
+        }
+        
+        function checkPassword() {
+            const passwordInput = document.getElementById('passwordInput');
+            const errorMessage = document.getElementById('errorMessage');
+            const userPassword = passwordInput.value.trim();
+            
+            if (userPassword === SECRET_PASSWORD) {
+                errorMessage.classList.remove('visible');
+                passwordInput.value = '';
+                
+                const lockScreen = document.getElementById('lock-screen');
+                lockScreen.classList.add('hidden');
+                
+                setTimeout(() => {
+                    const openingScreen = document.getElementById('opening-screen');
+                    openingScreen.style.display = 'flex';
+                    openingScreen.classList.add('visible');
+                }, 1500);
+            } else {
+                errorMessage.classList.add('visible');
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+
+        // ========== YOUTUBE API - PIANO ==========
+        let player;
+        let musicPlaying = false;
+        const YOUTUBE_VIDEO_ID = '9wKGx4NqsZY';
+        
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                videoId: YOUTUBE_VIDEO_ID,
+                playerVars: {
+                    'autoplay': 0,
+                    'loop': 1,
+                    'playlist': YOUTUBE_VIDEO_ID,
+                    'controls': 0,
+                    'showinfo': 0,
+                    'rel': 0,
+                    'modestbranding': 1,
+                    'enablejsapi': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+        
+        function onPlayerReady(event) {
+            console.log('YouTube Player đã sẵn sàng');
+        }
+        
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.PLAYING) {
+                musicPlaying = true;
+            } else if (event.data === YT.PlayerState.PAUSED) {
+                musicPlaying = false;
+            }
+        }
+        
+        function startMusic() {
+            if (!player) {
+                setTimeout(() => startMusic(), 500);
+                return;
+            }
+            
+            try {
+                if (typeof player.playVideo === 'function') {
+                    player.playVideo();
+                    musicPlaying = true;
+                    player.setVolume(15);
+                    const musicToggle = document.getElementById('musicToggle');
+                    if (musicToggle) {
+                        musicToggle.textContent = '🔊';
+                    }
+                }
+            } catch (error) {
+                console.log('Lỗi khi phát nhạc:', error);
+                setTimeout(() => startMusic(), 500);
+            }
+
+            // Phát background audio
+            const backgroundAudio = document.getElementById('background-audio');
+            if (backgroundAudio) {
+                backgroundAudio.volume = 0.3;
+                backgroundAudio.play().catch(e => {
+                    console.log('Background audio autoplay blocked:', e);
+                });
+            }
+        }
+        
+        function stopMusic() {
+            if (player && player.pauseVideo) {
+                player.pauseVideo();
+                musicPlaying = false;
+            }
+            const backgroundAudio = document.getElementById('background-audio');
+            if (backgroundAudio) {
+                backgroundAudio.pause();
+            }
+        }
+        
+        function toggleMusic() {
+            const toggle = document.getElementById('musicToggle');
+            if (musicPlaying) {
+                stopMusic();
+                toggle.textContent = '🔇';
+            } else {
+                startMusic();
+                toggle.textContent = '🔊';
+            }
+        }
+
+        // ========== BIẾN TOÀN CỤC ==========
+        const letterContent = "Gặp được em là điều anh rất trân quý. Em là một cô gái rất dễ thương. Có em, mùa đông năm nay của anh trở nên thật đặc biệt và ấm áp hơn. Anh sẽ luôn mang đến cho em hạnh phúc và ở bên em khi em cảm thấy cô đơn nhất.";
+
+        let envelopeOpened = false;
+        let hasAccepted = false;
+
+        // ========== MỞ PHONG BÌ ==========
+        function openEnvelope() {
+            if (envelopeOpened) return;
+            envelopeOpened = true;
+
+            console.log('Mở phong bì...');
+            const envelope = document.getElementById('envelope');
+            if (!envelope) {
+                console.error('Không tìm thấy envelope!');
+                return;
+            }
+            
+            envelope.classList.add('open');
+            envelope.classList.add('opened');
+
+            // Phát nhạc khi click mở phong bì
+            startMusic();
+
+            // Đợi animation phong bì mở hoàn tất
+            setTimeout(() => {
+                console.log('Ẩn màn hình phong bì...');
+                const openingScreen = document.getElementById('opening-screen');
+                if (openingScreen) {
+                    openingScreen.style.opacity = '0';
+                    openingScreen.style.transition = 'opacity 1s ease';
+                    setTimeout(() => {
+                        openingScreen.style.display = 'none';
+                        openingScreen.style.visibility = 'hidden';
+                    }, 1000);
+                }
+
+                // Hiện màn hình chính
+                setTimeout(() => {
+                    console.log('Hiện màn hình chính...');
+                    const mainContent = document.getElementById('main-content');
+                    if (mainContent) {
+                        mainContent.style.display = 'flex';
+                        mainContent.style.opacity = '0';
+                        mainContent.style.visibility = 'visible';
+                        
+                        // Fade in màn hình chính
+                        setTimeout(() => {
+                            mainContent.classList.add('visible');
+                            mainContent.style.opacity = '1';
+                            console.log('Màn hình chính đã hiển thị');
+                        }, 100);
+
+                        // Hiện container thư đầy đủ
+                        setTimeout(() => {
+                            const letterFull = document.getElementById('letterFull');
+                            if (letterFull) {
+                                letterFull.style.display = 'block';
+                                letterFull.classList.add('visible');
+                                letterFull.style.opacity = '1';
+                                letterFull.style.transform = 'translateY(0)';
+                                console.log('Container thư đã hiển thị');
+                                
+                                // Bắt đầu typing effect
+                                setTimeout(() => {
+                                    console.log('Bắt đầu typing effect...');
+                                    startTyping();
+                                }, 300);
+                            } else {
+                                console.error('Không tìm thấy letterFull!');
+                            }
+                        }, 800);
+
+                        // Hiện nút nhạc
+                        const musicToggle = document.getElementById('musicToggle');
+                        if (musicToggle) {
+                            musicToggle.classList.add('visible');
+                            musicToggle.style.opacity = '1';
+                        }
+                    } else {
+                        console.error('Không tìm thấy main-content!');
+                    }
+                }, 500);
+            }, 1500);
+        }
+
+        // ========== TYPING EFFECT ==========
+        function startTyping() {
+            const letterContentEl = document.getElementById('letterContent');
+            let charIndex = 0;
+
+            function typeNextChar() {
+                if (charIndex >= letterContent.length) {
+                    setTimeout(() => {
+                        const questionSection = document.getElementById('questionSection');
+                        questionSection.classList.add('visible');
+                    }, 500);
+                    return;
+                }
+
+                letterContentEl.textContent = letterContent.substring(0, charIndex + 1);
+                charIndex++;
+                setTimeout(typeNextChar, 50);
+            }
+
+            typeNextChar();
+        }
+
+        // ========== TOGGLE PASSWORD VISIBILITY ==========
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('passwordInput');
+            const passwordToggle = document.getElementById('passwordToggle');
+            const icon = passwordToggle.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // ========== XỬ LÝ CHỌN "ĐỒNG Ý" ==========
+        function handleYes() {
+            if (hasAccepted) return;
+            hasAccepted = true;
+
+            // Disable nút "Cho em thêm thời gian"
+            const maybeButton = document.getElementById('maybeButton');
+            if (maybeButton) {
+                maybeButton.disabled = true;
+                maybeButton.style.opacity = '0.5';
+                maybeButton.style.cursor = 'not-allowed';
+                maybeButton.style.pointerEvents = 'none';
+            }
+
+            // Cập nhật thông báo
+            const successText = document.querySelector('.success-text');
+            const successSubtext = document.querySelector('.success-subtext');
+            if (successText) {
+                successText.textContent = 'Chúc mừng em vì đã được làm người iu của anh hehe 💕';
+            }
+            if (successSubtext) {
+                successSubtext.textContent = 'Cảm ơn em đã đến bên anh 💖';
+            }
+
+            const successMessage = document.getElementById('successMessage');
+            successMessage.classList.add('visible');
+            
+            // Pháo hoa - Đảm bảo confetti đã được load
+            if (typeof confetti !== 'undefined') {
+                const colors = ['#ff6b9d', '#c44569', '#ffb6cf', '#ff9fbe', '#cc3366'];
+                
+                // Pháo hoa từ 2 bên
+                const duration = 3000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 6,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: colors
+                    });
+                    confetti({
+                        particleCount: 6,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: colors
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+
+                // Pháo hoa lớn từ giữa
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 200,
+                        spread: 80,
+                        origin: { y: 0.5 },
+                        colors: colors
+                    });
+                }, 300);
+
+                // Pháo hoa rải rác
+                setTimeout(() => {
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            confetti({
+                                particleCount: 50,
+                                angle: Math.random() * 60 + 60,
+                                spread: 70,
+                                origin: { x: Math.random() },
+                                colors: colors
+                            });
+                        }, i * 200);
+                    }
+                }, 1000);
+            } else {
+                console.log('Confetti chưa được load, đang thử lại...');
+                setTimeout(() => handleYes(), 100);
+            }
+        }
+
+        // ========== XỬ LÝ "CHO THÊM THỜI GIAN" ==========
+        function handleMaybe() {
+            if (hasAccepted) return;
+            
+            const maybeButton = document.getElementById('maybeButton');
+            const rect = maybeButton.getBoundingClientRect();
+            const maxX = window.innerWidth - rect.width - 20;
+            const maxY = window.innerHeight - rect.height - 20;
+            
+            const randomX = Math.max(20, Math.random() * maxX);
+            const randomY = Math.max(20, Math.random() * maxY);
+            
+            maybeButton.style.position = 'fixed';
+            maybeButton.style.left = randomX + 'px';
+            maybeButton.style.top = randomY + 'px';
+            maybeButton.style.transform = 'translate(0, 0)';
+            maybeButton.style.zIndex = '1000';
+            
+            setTimeout(() => {
+                maybeButton.style.animation = '';
+            }, 300);
+        }
+
+        // ========== KHỞI TẠO ==========
+        window.addEventListener('load', () => {
+            checkDateAndInit();
+            const openingScreen = document.getElementById('opening-screen');
+            if (openingScreen) {
+                openingScreen.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
